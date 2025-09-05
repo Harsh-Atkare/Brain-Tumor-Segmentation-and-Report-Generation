@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Segmentation & Analysis</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .upload-area {
+            border: 2px dashed #cbd5e0;
+            transition: all 0.3s ease;
+        }
+        .upload-area.drag-over {
+            border-color: #667eea;
+            background-color: #f7fafc;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <header class="gradient-bg text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold mb-2">
+                    <i class="fas fa-brain mr-3"></i>
+                    Brain Tumor Segmentation & Analysis
+                </h1>
+                <p class="text-xl opacity-90">Advanced AI-powered medical image analysis</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8 card-hover">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                <i class="fas fa-upload mr-2 text-blue-600"></i>
+                Upload MRI Images
+            </h2>
+            
+            <div class="grid md:grid-cols-3 gap-6 mb-6">
+                <div class="upload-area rounded-lg p-6 text-center" data-file-type="flair">
+                    <input type="file" id="flair-file" class="hidden" accept=".nii,.nii.gz">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">FLAIR Image</h3>
+                    <p class="text-sm text-gray-500 mb-4">Click to upload or drag & drop</p>
+                    <button onclick="document.getElementById('flair-file').click()" 
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        Select File
+                    </button>
+                    <div class="file-info mt-3 hidden">
+                        <span class="text-sm text-green-600"></span>
+                    </div>
+                </div>
+                <div class="upload-area rounded-lg p-6 text-center" data-file-type="t1ce">
+                    <input type="file" id="t1ce-file" class="hidden" accept=".nii,.nii.gz">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">T1CE Image</h3>
+                    <p class="text-sm text-gray-500 mb-4">Click to upload or drag & drop</p>
+                    <button onclick="document.getElementById('t1ce-file').click()" 
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        Select File
+                    </button>
+                    <div class="file-info mt-3 hidden">
+                        <span class="text-sm text-green-600"></span>
+                    </div>
+                </div>
+
+                <!-- T2 Upload -->
+                <div class="upload-area rounded-lg p-6 text-center" data-file-type="t2">
+                    <input type="file" id="t2-file" class="hidden" accept=".nii,.nii.gz">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">T2 Image</h3>
+                    <p class="text-sm text-gray-500 mb-4">Click to upload or drag & drop</p>
+                    <button onclick="document.getElementById('t2-file').click()" 
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        Select File
+                    </button>
+                    <div class="file-info mt-3 hidden">
+                        <span class="text-sm text-green-600"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button id="process-btn" 
+                        class="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        disabled>
+                    <i class="fas fa-cogs mr-2"></i>
+                    Process Images
+                </button>
+            </div>
+        </div>
+
+        <div id="progress-section" class="bg-white rounded-lg shadow-lg p-8 mb-8 hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                <i class="fas fa-spinner fa-spin mr-2 text-blue-600"></i>
+                Processing Status
+            </h2>
+            
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <i id="upload-icon" class="fas fa-upload text-gray-400 mr-3"></i>
+                        <span class="font-medium">File Upload</span>
+                    </div>
+                    <span id="upload-status" class="text-sm text-gray-600">Pending</span>
+                </div>
+
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <i id="seg-icon" class="fas fa-brain text-gray-400 mr-3"></i>
+                        <span class="font-medium">Tumor Segmentation</span>
+                    </div>
+                    <span id="seg-status" class="text-sm text-gray-600">Pending</span>
+                </div>
+
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <i id="features-icon" class="fas fa-chart-bar text-gray-400 mr-3"></i>
+                        <span class="font-medium">Feature Extraction</span>
+                    </div>
+                    <span id="features-status" class="text-sm text-gray-600">Pending</span>
+                </div>
+            </div>
+        </div>
+        <div id="results-section" class="hidden">
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-8 card-hover">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-image mr-2 text-purple-600"></i>
+                    Segmentation Results
+                </h2>
+                <div class="text-center">
+                    <button id="download-seg-btn" 
+                            class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+                        <i class="fas fa-download mr-2"></i>
+                        Download Segmentation Mask
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-8 card-hover">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-stethoscope mr-2 text-green-600"></i>
+                    Clinical Features Analysis
+                </h2>
+                
+                <div id="features-content" class="space-y-6">
+                </div>
+                
+                <div class="text-center mt-6">
+                    <button id="download-features-btn" 
+                            class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-download mr-2"></i>
+                        Download Clinical Report (CSV)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="error-section" class="bg-red-50 border border-red-200 rounded-lg p-6 mb-8 hidden">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle text-red-600 mr-3"></i>
+                <h3 class="text-lg font-semibold text-red-800">Error</h3>
+            </div>
+            <p id="error-message" class="text-red-700 mt-2"></p>
+        </div>
+    </main>
+    <footer class="bg-gray-800 text-white py-8 mt-16">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2024 Brain Tumor Analysis Platform. Advanced medical imaging with AI.</p>
+        </div>
+    </footer>
+    <script>
+        class BrainTumorApp {
+            constructor() {
+                this.uploadedFiles = {};
+                this.uploadId = null;
+                this.segmentationTaskId = null;
+                this.featuresTaskId = null;
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+
+                document.getElementById('flair-file').addEventListener('change', (e) => this.handleFileSelect(e, 'flair'));
+                document.getElementById('t1ce-file').addEventListener('change', (e) => this.handleFileSelect(e, 't1ce'));
+                document.getElementById('t2-file').addEventListener('change', (e) => this.handleFileSelect(e, 't2'));
+
+
+                this.setupDragAndDrop();
+
+                document.getElementById('process-btn').addEventListener('click', () => this.processImages());
+
+                document.getElementById('download-seg-btn').addEventListener('click', () => this.downloadSegmentation());
+                document.getElementById('download-features-btn').addEventListener('click', () => this.downloadFeatures());
+            }
+
+            setupDragAndDrop() {
+                const uploadAreas = document.querySelectorAll('.upload-area');
+                
+                uploadAreas.forEach(area => {
+                    area.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        area.classList.add('drag-over');
+                    });
+
+                    area.addEventListener('dragleave', () => {
+                        area.classList.remove('drag-over');
+                    });
+
+                    area.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        area.classList.remove('drag-over');
+                        
+                        const fileType = area.dataset.fileType;
+                        const files = e.dataTransfer.files;
+                        
+                        if (files.length > 0) {
+                            this.handleFile(files[0], fileType);
+                        }
+                    });
+                });
+            }
+
+            handleFileSelect(event, fileType) {
+                const file = event.target.files[0];
+                if (file) {
+                    this.handleFile(file, fileType);
+                }
+            }
+
+            handleFile(file, fileType) {
+                if (!file.name.toLowerCase().endsWith('.nii') && !file.name.toLowerCase().endsWith('.nii.gz')) {
+                    this.showError('Please select a valid NIfTI file (.nii or .nii.gz)');
+                    return;
+                }
+
+                this.uploadedFiles[fileType] = file;
+
+                const area = document.querySelector(`[data-file-type="${fileType}"]`);
+                const fileInfo = area.querySelector('.file-info');
+                const icon = area.querySelector('i');
+                
+                fileInfo.querySelector('span').textContent = file.name;
+                fileInfo.classList.remove('hidden');
+                icon.className = 'fas fa-check-circle text-4xl text-green-500 mb-4';
+
+                this.checkAllFilesUploaded();
+            }
+
+            checkAllFilesUploaded() {
+                const requiredFiles = ['flair', 't1ce', 't2'];
+                const hasAllFiles = requiredFiles.every(type => this.uploadedFiles[type]);
+                
+                document.getElementById('process-btn').disabled = !hasAllFiles;
+            }
+
+            async processImages() {
+                try {
+                    this.showProgress();
+                    await this.uploadFiles();
+                    await this.runSegmentation();
+                    await this.extractFeatures();
+                    this.showResults();
+                } catch (error) {
+                    this.showError(error.message);
+                }
+            }
+
+            async uploadFiles() {
+                this.updateStatus('upload', 'processing', 'Uploading files...');
+                
+                const formData = new FormData();
+                formData.append('flair', this.uploadedFiles.flair);
+                formData.append('t1ce', this.uploadedFiles.t1ce);
+                formData.append('t2', this.uploadedFiles.t2);
+
+                const response = await fetch('/api/upload/', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to upload files');
+                }
+
+                const result = await response.json();
+                this.uploadId = result.upload_id;
+                this.updateStatus('upload', 'completed', 'Files uploaded successfully');
+            }
+
+            async runSegmentation() {
+                this.updateStatus('seg', 'processing', 'Running segmentation...');
+
+                const response = await fetch('/api/segmentation/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        upload_id: this.uploadId
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to start segmentation');
+                }
+
+                const result = await response.json();
+                this.segmentationTaskId = result.task_id;
+
+                // Poll for completion
+                await this.pollTaskStatus(this.segmentationTaskId, 'segmentation');
+                this.updateStatus('seg', 'completed', 'Segmentation completed');
+            }
+
+            async extractFeatures() {
+                this.updateStatus('features', 'processing', 'Extracting features...');
+
+                const response = await fetch('/api/features/extract', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        task_id: this.segmentationTaskId
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to start feature extraction');
+                }
+
+                const result = await response.json();
+                this.featuresTaskId = result.task_id;
+
+                const taskResult = await this.pollTaskStatus(this.featuresTaskId, 'features');
+                this.updateStatus('features', 'completed', 'Feature extraction completed');
+
+                this.displayFeatures(taskResult.result.features);
+            }
+
+            async pollTaskStatus(taskId, taskType) {
+                const maxAttempts = 120;
+                let attempts = 0;
+
+                while (attempts < maxAttempts) {
+                    const response = await fetch(`/api/${taskType}/status/${taskId}`);
+                    const result = await response.json();
+
+                    if (result.status === 'completed') {
+                        return result;
+                    } else if (result.status === 'failed') {
+                        throw new Error(result.message || 'Task failed');
+                    }
+
+                    attempts++;
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                }
+
+                throw new Error('Task timeout');
+            }
+
+            updateStatus(type, status, message) {
+                const icon = document.getElementById(`${type}-icon`);
+                const statusText = document.getElementById(`${type}-status`);
+
+                statusText.textContent = message;
+
+                if (status === 'processing') {
+                    icon.className = 'fas fa-spinner fa-spin text-blue-600 mr-3';
+                } else if (status === 'completed') {
+                    icon.className = 'fas fa-check-circle text-green-600 mr-3';
+                } else if (status === 'failed') {
+                    icon.className = 'fas fa-times-circle text-red-600 mr-3';
+                }
+            }
+
+            displayFeatures(features) {
+                const container = document.getElementById('features-content');
+                
+                const html = `
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-blue-800 mb-2">Tumor Volume</h4>
+                            <p class="text-2xl font-bold text-blue-600">${features.whole_tumor_volume_cm3.toFixed(2)} cm³</p>
+                            <p class="text-sm text-gray-600">${features.tumor_size_category}</p>
+                        </div>
+                        
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-green-800 mb-2">Enhancement</h4>
+                            <p class="text-2xl font-bold text-green-600">${features.enhancing_percentage.toFixed(1)}%</p>
+                            <p class="text-sm text-gray-600">${features.enhancement_pattern}</p>
+                        </div>
+                        
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-purple-800 mb-2">Location</h4>
+                            <p class="text-lg font-bold text-purple-600">${features.hemisphere}</p>
+                            <p class="text-sm text-gray-600">${features.anatomical_location}</p>
+                        </div>
+                        
+                        <div class="bg-red-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-red-800 mb-2">Necrosis</h4>
+                            <p class="text-2xl font-bold text-red-600">${features.necrotic_percentage.toFixed(1)}%</p>
+                            <p class="text-sm text-gray-600">${features.necrosis_extent}</p>
+                        </div>
+                        
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-yellow-800 mb-2">Edema</h4>
+                            <p class="text-2xl font-bold text-yellow-600">${features.edema_percentage.toFixed(1)}%</p>
+                            <p class="text-sm text-gray-600">${features.edema_volume_cm3.toFixed(2)} cm³</p>
+                        </div>
+                        
+                        <div class="bg-indigo-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-indigo-800 mb-2">Diameter</h4>
+                            <p class="text-2xl font-bold text-indigo-600">${features.whole_tumor_diameter_mm.toFixed(1)} mm</p>
+                            <p class="text-sm text-gray-600">Maximum diameter</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-800 mb-3">Additional Information</h4>
+                        <div class="grid md:grid-cols-2 gap-4 text-sm">
+                            <div><strong>Has Enhancement:</strong> ${features.has_enhancement}</div>
+                            <div><strong>Has Necrosis:</strong> ${features.has_necrosis}</div>
+                            <div><strong>Has Edema:</strong> ${features.has_edema}</div>
+                            <div><strong>Voxel Spacing:</strong> ${features.voxel_spacing_mm}</div>
+                            <div><strong>Centroid:</strong> ${features.centroid_coordinates}</div>
+                            <div><strong>Enhancement Mean:</strong> ${features.enhancement_mean_intensity.toFixed(2)}</div>
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML = html;
+            }
+
+            async downloadSegmentation() {
+                if (!this.segmentationTaskId) return;
+                
+                const link = document.createElement('a');
+                link.href = `/api/segmentation/download/${this.segmentationTaskId}`;
+                link.download = `segmentation_${this.segmentationTaskId}.nii.gz`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            async downloadFeatures() {
+                if (!this.featuresTaskId) return;
+                
+                const link = document.createElement('a');
+                link.href = `/api/features/download/${this.featuresTaskId}`;
+                link.download = `clinical_features_${this.featuresTaskId}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            showProgress() {
+                document.getElementById('progress-section').classList.remove('hidden');
+                document.getElementById('results-section').classList.add('hidden');
+                document.getElementById('error-section').classList.add('hidden');
+            }
+
+            showResults() {
+                document.getElementById('results-section').classList.remove('hidden');
+            }
+
+            showError(message) {
+                document.getElementById('error-message').textContent = message;
+                document.getElementById('error-section').classList.remove('hidden');
+                document.getElementById('progress-section').classList.add('hidden');
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            new BrainTumorApp();
+        });
+    </script>
+</body>
+</html>

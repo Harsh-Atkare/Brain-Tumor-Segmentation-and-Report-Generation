@@ -1,0 +1,41 @@
+.processing-animation {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.feature-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.feature-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.feature-card.volume {
+    border-left-color: #3b82f6;
+}
+
+.feature-card.enhancement {
+    border-left-color: #10b981;
+}
+
+.feature-card.location {
+    border-left-color: #8b5cf6;
+}
+
+.feature-card.necrosis {
+    border-left-color: #ef4444;
+}
