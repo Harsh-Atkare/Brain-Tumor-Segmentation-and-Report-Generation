@@ -67,7 +67,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - BraTS dataset providers
 - Open-source libraries and pre-trained models
-- Harsh Atkare for developing the initial project
-
-For questions or issues, open a GitHub issue or contact harsh.atkare@example.com.
+  
 
