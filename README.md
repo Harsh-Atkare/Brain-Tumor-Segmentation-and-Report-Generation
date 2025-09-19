@@ -30,7 +30,7 @@ The project leverages convolutional neural networks (CNNs) for accurate tumor de
 
 The project uses the BraTS dataset, which includes multi-modal MRI scans (T1, T1ce, T2, FLAIR) of patients with brain tumors. Ground truth segmentations are provided for training and evaluation.
 
-- Download from: [BraTS Challenge Website](https://www.med.upenn.edu/cbica/brats/)
+- Download from: [BraTS Challenge Website](https://www.synapse.org/Synapse:syn51156910/wiki/621282)
 - Preprocessing: Skull stripping, normalization, and augmentation (rotation, flipping).
 
 
