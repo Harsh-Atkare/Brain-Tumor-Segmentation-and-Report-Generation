@@ -1,3 +1,4 @@
+# app/services/file_service.py
 import aiofiles
 import uuid
 from pathlib import Path
@@ -11,7 +12,9 @@ class FileService:
         self.upload_dir = settings.UPLOAD_DIR
         self.output_dir = settings.OUTPUT_DIR
     
+    
     async def save_uploaded_files(self, files: Dict[str, UploadFile]) -> Dict[str, Path]:
+
         upload_id = str(uuid.uuid4())
         upload_path = self.upload_dir / upload_id
         upload_path.mkdir(exist_ok=True)
@@ -33,6 +36,7 @@ class FileService:
         return upload_id, saved_files
     
     def _validate_file(self, file: UploadFile) -> bool:
+
         if file.size > settings.MAX_FILE_SIZE:
             return False
         
@@ -40,6 +44,7 @@ class FileService:
         return any(filename.endswith(ext) for ext in settings.ALLOWED_EXTENSIONS)
     
     def get_upload_files(self, upload_id: str) -> Optional[Dict[str, Path]]:
+
         upload_path = self.upload_dir / upload_id
         if not upload_path.exists():
             return None
@@ -53,6 +58,7 @@ class FileService:
         return files if len(files) == 3 else None
     
     def cleanup_upload(self, upload_id: str):
+
         upload_path = self.upload_dir / upload_id
         if upload_path.exists():
             shutil.rmtree(upload_path)

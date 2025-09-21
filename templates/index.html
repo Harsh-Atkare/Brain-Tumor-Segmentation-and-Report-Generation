@@ -25,9 +25,61 @@
             border-color: #667eea;
             background-color: #f7fafc;
         }
+        .report-preview {
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        .visualization-item {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .segmentation-overlay {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            border: 2px solid #e2e8f0;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #e2e8f0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 0.5rem;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transition: width 0.3s ease;
+        }
+        .section-header {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 0.25rem 0;
+        }
+        .legend-color {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 0.25rem;
+            margin-right: 0.5rem;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
+    <!-- Header -->
     <header class="gradient-bg text-white py-8">
         <div class="container mx-auto px-4">
             <div class="text-center">
@@ -35,12 +87,14 @@
                     <i class="fas fa-brain mr-3"></i>
                     Brain Tumor Segmentation & Analysis
                 </h1>
-                <p class="text-xl opacity-90">Advanced AI-powered medical image analysis</p>
+                <p class="text-xl opacity-90">Advanced AI-powered medical image analysis with intelligent reporting</p>
             </div>
         </div>
     </header>
 
+    <!-- Main Content -->
     <main class="container mx-auto px-4 py-8">
+        <!-- Upload Section -->
         <div class="bg-white rounded-lg shadow-lg p-8 mb-8 card-hover">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">
                 <i class="fas fa-upload mr-2 text-blue-600"></i>
@@ -48,6 +102,7 @@
             </h2>
             
             <div class="grid md:grid-cols-3 gap-6 mb-6">
+                <!-- FLAIR Upload -->
                 <div class="upload-area rounded-lg p-6 text-center" data-file-type="flair">
                     <input type="file" id="flair-file" class="hidden" accept=".nii,.nii.gz">
                     <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
@@ -61,6 +116,8 @@
                         <span class="text-sm text-green-600"></span>
                     </div>
                 </div>
+
+                <!-- T1CE Upload -->
                 <div class="upload-area rounded-lg p-6 text-center" data-file-type="t1ce">
                     <input type="file" id="t1ce-file" class="hidden" accept=".nii,.nii.gz">
                     <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
@@ -91,23 +148,56 @@
                 </div>
             </div>
 
+            <!-- Patient Information (Optional) -->
+            <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Patient Information (Optional)</h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <input type="text" id="patient-id" placeholder="Patient ID" 
+                           class="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600">
+                    <input type="text" id="patient-age" placeholder="Age" 
+                           class="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600">
+                    <select id="patient-gender" class="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600">
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <input type="text" id="referring-physician" placeholder="Referring Physician" 
+                           class="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600">
+                </div>
+            </div>
+
+            <!-- Process Button -->
             <div class="text-center">
                 <button id="process-btn" 
                         class="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
                         disabled>
                     <i class="fas fa-cogs mr-2"></i>
-                    Process Images
+                    Process Images & Generate Report
                 </button>
             </div>
         </div>
 
+        <!-- Progress Section -->
         <div id="progress-section" class="bg-white rounded-lg shadow-lg p-8 mb-8 hidden">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">
                 <i class="fas fa-spinner fa-spin mr-2 text-blue-600"></i>
                 Processing Status
             </h2>
             
+            <!-- Overall Progress Bar -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-gray-700">Overall Progress</span>
+                    <span id="overall-progress-text" class="text-sm text-gray-600">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="overall-progress-fill" class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            
             <div class="space-y-4">
+                <!-- Upload Progress -->
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div class="flex items-center">
                         <i id="upload-icon" class="fas fa-upload text-gray-400 mr-3"></i>
@@ -116,45 +206,95 @@
                     <span id="upload-status" class="text-sm text-gray-600">Pending</span>
                 </div>
 
+                <!-- Segmentation Progress -->
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div class="flex items-center">
                         <i id="seg-icon" class="fas fa-brain text-gray-400 mr-3"></i>
-                        <span class="font-medium">Tumor Segmentation</span>
+                        <span class="font-medium">Tumor Segmentation & Visualization</span>
                     </div>
                     <span id="seg-status" class="text-sm text-gray-600">Pending</span>
                 </div>
 
+                <!-- Feature Extraction Progress -->
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div class="flex items-center">
                         <i id="features-icon" class="fas fa-chart-bar text-gray-400 mr-3"></i>
-                        <span class="font-medium">Feature Extraction</span>
+                        <span class="font-medium">Clinical Feature Analysis</span>
                     </div>
                     <span id="features-status" class="text-sm text-gray-600">Pending</span>
                 </div>
+
+                <!-- Report Generation Progress -->
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <i id="report-icon" class="fas fa-file-medical text-gray-400 mr-3"></i>
+                        <span class="font-medium">AI Report Generation</span>
+                    </div>
+                    <span id="report-status" class="text-sm text-gray-600">Pending</span>
+                </div>
             </div>
         </div>
+
+        <!-- Results Section -->
         <div id="results-section" class="hidden">
+            <!-- Segmentation Results with Visualizations -->
             <div class="bg-white rounded-lg shadow-lg p-8 mb-8 card-hover">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 section-header">
                     <i class="fas fa-image mr-2 text-purple-600"></i>
-                    Segmentation Results
+                    Segmentation Results & Visualizations
                 </h2>
+                
+                <!-- Tumor Segmentation Legend -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <h3 class="text-lg font-semibold mb-3">Tumor Component Legend</h3>
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #ff0000;"></div>
+                            <span class="text-sm font-medium">Necrotic Core</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #00ff00;"></div>
+                            <span class="text-sm font-medium">Peritumoral Edema</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #0000ff;"></div>
+                            <span class="text-sm font-medium">Enhancing Tumor</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #333333;"></div>
+                            <span class="text-sm font-medium">Background</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visualization Grid -->
+                <div id="segmentation-visualizations" class="visualization-grid mb-6">
+                    <!-- Visualizations will be populated here -->
+                </div>
+                
                 <div class="text-center">
                     <button id="download-seg-btn" 
-                            class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+                            class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition mr-4">
                         <i class="fas fa-download mr-2"></i>
                         Download Segmentation Mask
+                    </button>
+                    <button id="toggle-visualizations-btn" 
+                            class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
+                        <i class="fas fa-eye mr-2"></i>
+                        Toggle Visualizations
                     </button>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow-lg p-8 card-hover">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+            <!-- Clinical Features -->
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-8 card-hover">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 section-header">
                     <i class="fas fa-stethoscope mr-2 text-green-600"></i>
                     Clinical Features Analysis
                 </h2>
                 
                 <div id="features-content" class="space-y-6">
+                    <!-- Feature content will be populated here -->
                 </div>
                 
                 <div class="text-center mt-6">
@@ -165,21 +305,66 @@
                     </button>
                 </div>
             </div>
+
+            <!-- AI Generated Report -->
+            <div class="bg-white rounded-lg shadow-lg p-8 card-hover">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 section-header">
+                    <i class="fas fa-robot mr-2 text-indigo-600"></i>
+                    AI-Generated Clinical Report
+                </h2>
+                
+                <div id="report-content" class="space-y-6">
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                            <span class="text-sm text-blue-800">
+                                This report is generated by advanced AI models based on quantitative analysis. 
+                                It should be reviewed by qualified medical professionals.
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div id="report-preview" class="report-preview bg-gray-50 border rounded-lg p-4">
+                        <!-- AI report content will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="text-center mt-6">
+                    <button id="download-report-btn" 
+                            class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
+                        <i class="fas fa-file-pdf mr-2"></i>
+                        Download Complete Report (PDF)
+                    </button>
+                </div>
+            </div>
         </div>
 
+        <!-- Error Section -->
         <div id="error-section" class="bg-red-50 border border-red-200 rounded-lg p-6 mb-8 hidden">
             <div class="flex items-center">
                 <i class="fas fa-exclamation-triangle text-red-600 mr-3"></i>
                 <h3 class="text-lg font-semibold text-red-800">Error</h3>
             </div>
             <p id="error-message" class="text-red-700 mt-2"></p>
+            <div class="mt-4">
+                <button onclick="this.parentElement.parentElement.classList.add('hidden')" 
+                        class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
+                    <i class="fas fa-times mr-1"></i>
+                    Dismiss
+                </button>
+            </div>
         </div>
     </main>
+
+    <!-- Footer -->
     <footer class="bg-gray-800 text-white py-8 mt-16">
         <div class="container mx-auto px-4 text-center">
-            <p>&copy; 2024 Brain Tumor Analysis Platform. Advanced medical imaging with AI.</p>
+            <p>Advanced medical imaging with AI-powered reporting.</p>
+
         </div>
     </footer>
+
+    <!-- JavaScript -->
     <script>
         class BrainTumorApp {
             constructor() {
@@ -187,22 +372,30 @@
                 this.uploadId = null;
                 this.segmentationTaskId = null;
                 this.featuresTaskId = null;
+                this.reportTaskId = null;
+                this.currentProgress = 0;
                 this.initializeEventListeners();
             }
 
             initializeEventListeners() {
-
+                // File input change events
                 document.getElementById('flair-file').addEventListener('change', (e) => this.handleFileSelect(e, 'flair'));
                 document.getElementById('t1ce-file').addEventListener('change', (e) => this.handleFileSelect(e, 't1ce'));
                 document.getElementById('t2-file').addEventListener('change', (e) => this.handleFileSelect(e, 't2'));
 
-
+                // Drag and drop events
                 this.setupDragAndDrop();
 
+                // Process button
                 document.getElementById('process-btn').addEventListener('click', () => this.processImages());
 
+                // Download buttons
                 document.getElementById('download-seg-btn').addEventListener('click', () => this.downloadSegmentation());
                 document.getElementById('download-features-btn').addEventListener('click', () => this.downloadFeatures());
+                document.getElementById('download-report-btn').addEventListener('click', () => this.downloadReport());
+                
+                // Toggle visualizations
+                document.getElementById('toggle-visualizations-btn').addEventListener('click', () => this.toggleVisualizations());
             }
 
             setupDragAndDrop() {
@@ -240,13 +433,16 @@
             }
 
             handleFile(file, fileType) {
+                // Validate file type
                 if (!file.name.toLowerCase().endsWith('.nii') && !file.name.toLowerCase().endsWith('.nii.gz')) {
                     this.showError('Please select a valid NIfTI file (.nii or .nii.gz)');
                     return;
                 }
 
+                // Store file
                 this.uploadedFiles[fileType] = file;
 
+                // Update UI
                 const area = document.querySelector(`[data-file-type="${fileType}"]`);
                 const fileInfo = area.querySelector('.file-info');
                 const icon = area.querySelector('i');
@@ -255,6 +451,7 @@
                 fileInfo.classList.remove('hidden');
                 icon.className = 'fas fa-check-circle text-4xl text-green-500 mb-4';
 
+                // Check if all files are uploaded
                 this.checkAllFilesUploaded();
             }
 
@@ -265,12 +462,41 @@
                 document.getElementById('process-btn').disabled = !hasAllFiles;
             }
 
+            getPatientInfo() {
+                return {
+                    patient_id: document.getElementById('patient-id').value,
+                    patient_age: document.getElementById('patient-age').value,
+                    patient_gender: document.getElementById('patient-gender').value,
+                    referring_physician: document.getElementById('referring-physician').value
+                };
+            }
+
+            updateOverallProgress(progress) {
+                this.currentProgress = progress;
+                const progressFill = document.getElementById('overall-progress-fill');
+                const progressText = document.getElementById('overall-progress-text');
+                
+                progressFill.style.width = `${progress}%`;
+                progressText.textContent = `${Math.round(progress)}%`;
+            }
+
             async processImages() {
                 try {
                     this.showProgress();
+                    this.updateOverallProgress(5);
+                    
                     await this.uploadFiles();
+                    this.updateOverallProgress(20);
+                    
                     await this.runSegmentation();
+                    this.updateOverallProgress(50);
+                    
                     await this.extractFeatures();
+                    this.updateOverallProgress(75);
+                    
+                    await this.generateReport();
+                    this.updateOverallProgress(100);
+                    
                     this.showResults();
                 } catch (error) {
                     this.showError(error.message);
@@ -300,7 +526,7 @@
             }
 
             async runSegmentation() {
-                this.updateStatus('seg', 'processing', 'Running segmentation...');
+                this.updateStatus('seg', 'processing', 'Running segmentation & generating visualizations...');
 
                 const response = await fetch('/api/segmentation/predict', {
                     method: 'POST',
@@ -321,11 +547,65 @@
 
                 // Poll for completion
                 await this.pollTaskStatus(this.segmentationTaskId, 'segmentation');
-                this.updateStatus('seg', 'completed', 'Segmentation completed');
+                this.updateStatus('seg', 'completed', 'Segmentation & visualizations completed');
+                
+                // Load and display visualizations
+                await this.loadSegmentationVisualizations();
+            }
+
+            async loadSegmentationVisualizations() {
+                try {
+                    const response = await fetch(`/api/segmentation/visualizations/${this.segmentationTaskId}`);
+                    if (!response.ok) return;
+                    
+                    const result = await response.json();
+                    this.displaySegmentationVisualizations(result.visualizations);
+                } catch (error) {
+                    console.error('Error loading visualizations:', error);
+                }
+            }
+
+            displaySegmentationVisualizations(visualizations) {
+                const container = document.getElementById('segmentation-visualizations');
+                let html = '';
+                
+                // Display individual modality overlays
+                for (const [modality, vizData] of Object.entries(visualizations)) {
+                    if (modality === '3d_volume') continue; // Handle separately
+                    
+                    html += `
+                        <div class="visualization-item">
+                            <h4 class="text-lg font-semibold mb-3 capitalize">${modality} Segmentation Overlay</h4>
+                            <img src="data:image/png;base64,${vizData}" 
+                                 alt="${modality} segmentation overlay"
+                                 class="segmentation-overlay">
+                            <p class="text-sm text-gray-600 mt-2">
+                                Colored regions show tumor components overlaid on ${modality.toUpperCase()} image
+                            </p>
+                        </div>
+                    `;
+                }
+                
+                // Add 3D volume visualization if available
+                if (visualizations['3d_volume']) {
+                    html += `
+                        <div class="visualization-item md:col-span-2">
+                            <h4 class="text-lg font-semibold mb-3">3D Volume Analysis</h4>
+                            <img src="data:image/png;base64,${visualizations['3d_volume']}" 
+                                 alt="3D volume analysis"
+                                 class="segmentation-overlay">
+                            <p class="text-sm text-gray-600 mt-2">
+                                Multi-planar views and volume statistics of segmented tumor components
+                            </p>
+                        </div>
+                    `;
+                }
+                
+                container.innerHTML = html;
             }
 
             async extractFeatures() {
-                this.updateStatus('features', 'processing', 'Extracting features...');
+                this.updateStatus('features', 'processing', 'Extracting clinical features...');
 
                 const response = await fetch('/api/features/extract', {
                     method: 'POST',
@@ -344,14 +624,59 @@
                 const result = await response.json();
                 this.featuresTaskId = result.task_id;
 
+                // Poll for completion
                 const taskResult = await this.pollTaskStatus(this.featuresTaskId, 'features');
                 this.updateStatus('features', 'completed', 'Feature extraction completed');
-
+                
+                // Display features
                 this.displayFeatures(taskResult.result.features);
             }
 
+            async generateReport() {
+                this.updateStatus('report', 'processing', 'Generating comprehensive AI report...');
+
+                const patientInfo = this.getPatientInfo();
+                
+                const response = await fetch('/api/reports/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        features_task_id: this.featuresTaskId,
+                        patient_info: patientInfo
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to start report generation');
+                }
+
+                const result = await response.json();
+                this.reportTaskId = result.task_id;
+
+                // Poll for completion
+                const taskResult = await this.pollTaskStatus(this.reportTaskId, 'reports');
+                this.updateStatus('report', 'completed', 'AI report generated successfully');
+                
+                // Load and display report preview
+                await this.loadReportPreview();
+            }
+
+            async loadReportPreview() {
+                try {
+                    const response = await fetch(`/api/reports/preview/${this.reportTaskId}`);
+                    if (!response.ok) return;
+                    
+                    const result = await response.json();
+                    this.displayReport(result);
+                } catch (error) {
+                    console.error('Error loading report preview:', error);
+                }
+            }
+
             async pollTaskStatus(taskId, taskType) {
-                const maxAttempts = 120;
+                const maxAttempts = 120; // 10 minutes maximum
                 let attempts = 0;
 
                 while (attempts < maxAttempts) {
@@ -365,7 +690,7 @@
                     }
 
                     attempts++;
-                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
                 }
 
                 throw new Error('Task timeout');
@@ -444,6 +769,60 @@
                 container.innerHTML = html;
             }
 
+            displayReport(reportData) {
+                const container = document.getElementById('report-preview');
+                
+                // Format the report text for better display with proper structure
+                const reportText = reportData.report_text || '';
+                
+                // Process the structured report text
+                let formattedHtml = reportText
+                    .replace(/\*\*(.*?)\*\*/g, '<h3 class="text-lg font-bold text-gray-800 mt-6 mb-3 border-b pb-2">$1</h3>')
+                    .replace(/• (.*?)(?=\n|$)/g, '<li class="ml-4 mb-1">$1</li>')
+                    .replace(/(\d+\.\s.*?)(?=\n|$)/g, '<li class="ml-4 mb-1 list-decimal">$1</li>')
+                    .replace(/\n\n/g, '</p><p class="mb-4">')
+                    .replace(/\n/g, '<br>')
+                    .replace(/^(.*)/, '<p class="mb-4">$1</p>');
+
+                const html = `
+                    <div class="space-y-4">
+                        <div class="border-b pb-4 mb-6">
+                            <h3 class="text-xl font-bold text-gray-800">Comprehensive Clinical Report</h3>
+                            <div class="grid md:grid-cols-3 gap-4 mt-3 text-sm">
+                                <div class="text-gray-600">
+                                    <strong>Generated:</strong> ${new Date(reportData.generated_at).toLocaleString()}
+                                </div>
+                                <div class="text-gray-600">
+                                    <strong>Model:</strong> ${reportData.model_used}
+                                </div>
+                                <div class="text-gray-600">
+                                    <strong>Task ID:</strong> ${reportData.task_id}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="prose prose-sm max-w-none">
+                            ${formattedHtml}
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML = html;
+            }
+
+            toggleVisualizations() {
+                const visualizations = document.getElementById('segmentation-visualizations');
+                if (visualizations.style.display === 'none') {
+                    visualizations.style.display = 'grid';
+                    document.getElementById('toggle-visualizations-btn').innerHTML = 
+                        '<i class="fas fa-eye-slash mr-2"></i>Hide Visualizations';
+                } else {
+                    visualizations.style.display = 'none';
+                    document.getElementById('toggle-visualizations-btn').innerHTML = 
+                        '<i class="fas fa-eye mr-2"></i>Show Visualizations';
+                }
+            }
+
             async downloadSegmentation() {
                 if (!this.segmentationTaskId) return;
                 
@@ -466,6 +845,17 @@
                 document.body.removeChild(link);
             }
 
+            async downloadReport() {
+                if (!this.reportTaskId) return;
+                
+                const link = document.createElement('a');
+                link.href = `/api/reports/download/${this.reportTaskId}`;
+                link.download = `brain_tumor_comprehensive_report_${this.reportTaskId}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
             showProgress() {
                 document.getElementById('progress-section').classList.remove('hidden');
                 document.getElementById('results-section').classList.add('hidden');
@@ -480,8 +870,11 @@
                 document.getElementById('error-message').textContent = message;
                 document.getElementById('error-section').classList.remove('hidden');
                 document.getElementById('progress-section').classList.add('hidden');
+                this.updateOverallProgress(0);
             }
         }
+
+        // Initialize the application
         document.addEventListener('DOMContentLoaded', () => {
             new BrainTumorApp();
         });

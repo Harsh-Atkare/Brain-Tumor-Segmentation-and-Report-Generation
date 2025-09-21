@@ -1,3 +1,4 @@
+# app/utils/preprocessing.py
 import numpy as np
 import nibabel as nib
 import torch
@@ -22,6 +23,18 @@ class ImagePreprocessor:
         return img_scaled.reshape(img_data.shape)
     
     def preprocess_input(self, flair_path: Path, t1ce_path: Path, t2_path: Path):
+        """
+        Preprocess multi-modal input for segmentation.
+        
+        Args:
+            flair_path: Path to FLAIR image
+            t1ce_path: Path to T1CE image  
+            t2_path: Path to T2 image
+            
+        Returns:
+            Preprocessed tensor and original shape
+        """
+        # Load images
         flair_img, flair_nifti = self.load_nifti(flair_path)
         t1ce_img, _ = self.load_nifti(t1ce_path)
         t2_img, _ = self.load_nifti(t2_path)

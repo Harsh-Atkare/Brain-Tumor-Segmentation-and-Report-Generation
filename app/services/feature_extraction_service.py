@@ -16,32 +16,35 @@ class FeatureExtractionService:
     def extract_features(self, file_paths: Dict[str, Path], 
                         segmentation_path: Path, case_id: str) -> Dict[str, Any]:
         try:
-  
-            t1_img = nib.load(file_paths['flair']).get_fdata() 
+            t1_img = nib.load(file_paths['flair']).get_fdata()
             t1ce_img = nib.load(file_paths['t1ce']).get_fdata()
             seg_img = nib.load(segmentation_path).get_fdata()
 
             header = nib.load(file_paths['flair']).header
             voxel_size = header.get_zooms()
-            
+
             enhancing_tumor = (seg_img == 3).astype(int)
             necrotic_core = (seg_img == 1).astype(int)
             peritumoral_edema = (seg_img == 2).astype(int)
             tumor_core = ((seg_img == 1) | (seg_img == 3)).astype(int)
             whole_tumor = (seg_img > 0).astype(int)
-            
+
             whole_voxels, whole_mm3 = self._calculate_volume_mm3(whole_tumor, voxel_size)
             core_voxels, core_mm3 = self._calculate_volume_mm3(tumor_core, voxel_size)
             enhancing_voxels, enhancing_mm3 = self._calculate_volume_mm3(enhancing_tumor, voxel_size)
             necrotic_voxels, necrotic_mm3 = self._calculate_volume_mm3(necrotic_core, voxel_size)
             edema_voxels, edema_mm3 = self._calculate_volume_mm3(peritumoral_edema, voxel_size)
+
             whole_diameter = self._calculate_max_diameter(whole_tumor, voxel_size)
             core_diameter = self._calculate_max_diameter(tumor_core, voxel_size)
             enhancing_diameter = self._calculate_max_diameter(enhancing_tumor, voxel_size)
+
             hemisphere, location, cent_x, cent_y, cent_z = self._get_location_info(whole_tumor)
+
             enhancing_ratio = enhancing_mm3 / whole_mm3 if whole_mm3 > 0 else 0
             necrotic_ratio = necrotic_mm3 / whole_mm3 if whole_mm3 > 0 else 0
             edema_ratio = edema_mm3 / whole_mm3 if whole_mm3 > 0 else 0
+
             if enhancing_voxels > 0:
                 t1ce_enhancing = t1ce_img[enhancing_tumor > 0]
                 enhancement_mean = np.mean(t1ce_enhancing)
@@ -49,7 +52,7 @@ class FeatureExtractionService:
             else:
                 enhancement_mean = 0
                 enhancement_max = 0
-            
+
             features = {
                 'case_id': case_id,
                 'voxel_spacing_mm': f"{voxel_size[0]:.1f}x{voxel_size[1]:.1f}x{voxel_size[2]:.1f}",
@@ -86,13 +89,13 @@ class FeatureExtractionService:
             raise
     
     def _calculate_volume_mm3(self, mask, voxel_size):
-        """Calculate volume in voxels and mm³."""
+
         volume_voxels = np.sum(mask)
         volume_mm3 = volume_voxels * np.prod(voxel_size)
         return volume_voxels, volume_mm3
     
     def _calculate_max_diameter(self, mask, voxel_size):
-        """Calculate maximum diameter of region."""
+
         if np.sum(mask) == 0:
             return 0
         props = measure.regionprops(mask.astype(int))[0]
@@ -101,7 +104,7 @@ class FeatureExtractionService:
         return np.max(bbox_dims)
     
     def _get_location_info(self, mask):
-        """Get anatomical location information."""
+
         if np.sum(mask) == 0:
             return 'none', 'none', 0, 0, 0
         props = measure.regionprops(mask.astype(int))[0]
@@ -122,19 +125,19 @@ class FeatureExtractionService:
         return hemisphere, location, centroid[0], centroid[1], centroid[2]
     
     def _categorize_size(self, volume_mm3):
-        """Categorize tumor size."""
+
         volume_cm3 = volume_mm3 / 1000
         if volume_cm3 < 1:
-            return 'small (<1 cm³)'
+            return 'small (<1 cmÂ³)'
         elif volume_cm3 < 5:
-            return 'medium (1-5 cm³)'
+            return 'medium (1-5 cmÂ³)'
         elif volume_cm3 < 15:
-            return 'large (5-15 cm³)'
+            return 'large (5-15 cmÂ³)'
         else:
-            return 'very_large (>15 cm³)'
+            return 'very_large (>15 cmÂ³)'
     
     def _categorize_enhancement(self, enhancing_ratio):
-        """Categorize enhancement pattern."""
+
         if enhancing_ratio == 0:
             return 'none'
         elif enhancing_ratio < 0.1:
@@ -147,7 +150,7 @@ class FeatureExtractionService:
             return 'extensive (>70%)'
     
     def _categorize_necrosis(self, necrotic_ratio):
-        """Categorize necrosis extent."""
+
         if necrotic_ratio == 0:
             return 'none'
         elif necrotic_ratio < 0.1:
@@ -158,7 +161,7 @@ class FeatureExtractionService:
             return 'extensive (>30%)'
     
     def save_features_to_csv(self, features: Dict[str, Any], output_path: Path) -> Path:
-        """Save features to CSV file."""
+
         df = pd.DataFrame([features])
         df.to_csv(output_path, index=False)
         return output_path

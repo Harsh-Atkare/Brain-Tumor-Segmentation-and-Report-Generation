@@ -21,7 +21,7 @@ def run_feature_extraction_task(task_id: str, segmentation_task_id: str,
                                feature_service: FeatureExtractionService,
                                file_service: FileService,
                                task_service: TaskService):
-    """Background task for feature extraction."""
+
     try:
         task_service.update_task(task_id, TaskStatus.PROCESSING, 0.1,
                                "Starting feature extraction...")
@@ -30,8 +30,10 @@ def run_feature_extraction_task(task_id: str, segmentation_task_id: str,
         if not seg_task or seg_task.status != TaskStatus.COMPLETED:
             raise Exception("Segmentation task not completed")
         
+
         upload_id = seg_task.result.get('upload_id') if seg_task.result else None
         if not upload_id:
+
             seg_task_data = task_service.tasks.get(segmentation_task_id, {})
             upload_id = seg_task_data.get('upload_id')
         
@@ -45,17 +47,23 @@ def run_feature_extraction_task(task_id: str, segmentation_task_id: str,
         segmentation_path = Path(seg_task.result['output_path'])
         
         task_service.update_task(task_id, progress=0.5,
-                               message="Extracting features...")
+                               message="Extracting clinical features...")
+        
         features = feature_service.extract_features(
             file_paths, segmentation_path, f"case_{task_id}"
         )
+        
 
         output_path = settings.OUTPUT_DIR / f"{task_id}_features.csv"
         feature_service.save_features_to_csv(features, output_path)
         
         task_service.update_task(task_id, TaskStatus.COMPLETED, 1.0,
                                "Feature extraction completed successfully",
-                               {"features": features, "output_path": str(output_path)})
+                               {
+                                   "features": features, 
+                                   "output_path": str(output_path),
+                                   "segmentation_task_id": segmentation_task_id
+                               })
         
     except Exception as e:
         logger.error(f"Feature extraction task {task_id} failed: {e}")
@@ -70,8 +78,9 @@ async def extract_features(
     file_service: FileService = Depends(get_file_service),
     task_service: TaskService = Depends(get_task_service)
 ):
-    """Extract clinical features from segmentation."""
+
     try:
+
         seg_task = task_service.get_task(request.task_id)
         if not seg_task:
             raise HTTPException(status_code=404, 
@@ -83,6 +92,7 @@ async def extract_features(
         
         task_id = task_service.create_task("feature_extraction",
                                          segmentation_task_id=request.task_id)
+        
         background_tasks.add_task(
             run_feature_extraction_task, task_id, request.task_id,
             feature_service, file_service, task_service
@@ -105,7 +115,7 @@ async def get_feature_extraction_status(
     task_id: str,
     task_service: TaskService = Depends(get_task_service)
 ):
-    """Get feature extraction task status."""
+    
     task = task_service.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -116,7 +126,7 @@ async def download_features(
     task_id: str,
     task_service: TaskService = Depends(get_task_service)
 ):
-    """Download feature extraction results."""
+
     task = task_service.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")

@@ -1,19 +1,21 @@
+# app/main.py
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from app.core.config import settings
-from app.api.routes import upload, segmentation, features
+from app.api.routes import upload, segmentation, features, reports
 import logging
 
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler("app.log"),
         logging.StreamHandler()
-    ] 
+    ]
 )
 
 app = FastAPI(
@@ -22,6 +24,7 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
@@ -30,13 +33,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Templates
 templates = Jinja2Templates(directory="templates")
 
+# Include API routes
 app.include_router(upload.router, prefix=f"{settings.API_V1_STR}/upload", tags=["upload"])
 app.include_router(segmentation.router, prefix=f"{settings.API_V1_STR}/segmentation", tags=["segmentation"])
 app.include_router(features.router, prefix=f"{settings.API_V1_STR}/features", tags=["features"])
+app.include_router(reports.router, prefix=f"{settings.API_V1_STR}/reports", tags=["reports"])
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):

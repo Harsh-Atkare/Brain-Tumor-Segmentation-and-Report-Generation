@@ -32,9 +32,18 @@ class TaskStatusResponse(BaseModel):
     updated_at: datetime
 
 class FeatureExtractionRequest(BaseModel):
-    task_id: str 
+    task_id: str  # Segmentation task ID
 
 class FeatureExtractionResponse(BaseModel):
+    task_id: str
+    status: TaskStatus
+    message: str
+
+class ReportGenerationRequest(BaseModel):
+    features_task_id: str
+    patient_info: Optional[Dict[str, str]] = None
+
+class ReportGenerationResponse(BaseModel):
     task_id: str
     status: TaskStatus
     message: str
