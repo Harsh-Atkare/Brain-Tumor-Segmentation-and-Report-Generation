@@ -1,5 +1,5 @@
 # app/core/config.py
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 
 
@@ -29,10 +29,10 @@ class Settings(BaseSettings):
 
     HUGGINGFACEHUB_ACCESS_TOKEN: str
     MODEL_NAME: str
+    HUGGINGFACE_API_URL: str
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
 
 
 settings = Settings()
