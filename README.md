@@ -111,7 +111,6 @@ After downloading, place the model file in:
 ```bash
 brain-tumor-analysis/data/models/
 ```
----
  
 ### 5. LLM API Integration
 	1.	Get your Hugging Face API key from the Hugging Face website￼.
@@ -127,8 +126,7 @@ uvicorn app.main:app --reload
 
 After running, Uvicorn will display a local host link in the terminal.
 Open it in your browser to access the system interface.
-
-
+---
 ## ⚠️ Disclaimer
 This system is intended **for research and educational purposes only**.  
 It should **not** be used as a substitute for professional medical judgment or diagnosis.
